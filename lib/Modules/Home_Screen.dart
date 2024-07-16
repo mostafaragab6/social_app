@@ -5,6 +5,7 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:intl/intl.dart';
 import 'package:social_app/Models/App_Cubit/Cubit.dart';
 import 'package:social_app/Models/App_Cubit/States.dart';
+import 'package:social_app/Modules/Post_View.dart';
 
 class HomeScreen extends StatelessWidget {
 
@@ -221,18 +222,18 @@ class HomeScreen extends StatelessWidget {
                       shrinkWrap: true,
                         physics: NeverScrollableScrollPhysics(),
                         itemBuilder: (context,index){
+                        if(cubit.postsModel!.data[index].method == 'Share'){
                           return Card(
                             shadowColor: Colors.transparent,
-                              shape: RoundedRectangleBorder(
+                            shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(20.0)
-                              ),
-                              color: Colors.white,
+                            ),
+                            color: Colors.white38,
                             child: Padding(
                               padding: const EdgeInsets.all(20.0),
                               child: Column(
-                                crossAxisAlignment:CrossAxisAlignment.start,
-
                                 children: [
+
                                   Row(
                                     children: [
                                       Container(
@@ -246,7 +247,7 @@ class HomeScreen extends StatelessWidget {
                                           ClipRRect(
                                             borderRadius: BorderRadius.circular(25),
                                             child: CachedNetworkImage(
-                                              imageUrl: '${cubit.postsModel!.data[index].userImage!}',
+                                              imageUrl: '${cubit.postsModel!.data[index].myImage!}',
                                               placeholder: (context, url) => SpinKitRing(
                                                 color: Colors.grey,
                                                 lineWidth: 3.0,
@@ -262,52 +263,122 @@ class HomeScreen extends StatelessWidget {
                                       Column(
                                         crossAxisAlignment:CrossAxisAlignment.start,
                                         children: [
-                                          Text('${cubit.postsModel!.data[index].userName}',
-                                          style: TextStyle(
-                                            fontSize: 17,
-                                            fontWeight: FontWeight.w700
-                                          ),),
-                                          Text("${DateFormat('MMMM d, y').format(cubit.postsModel!.data[index].dateTime!)}",
-                                          style: TextStyle(
-                                            color: Colors.grey,
-                                            fontSize: 15
-                                          ),)
+                                          Text('${cubit.postsModel!.data[index].myName}',
+                                            style: TextStyle(
+                                                fontSize: 17,
+                                                fontWeight: FontWeight.w700
+                                            ),),
+                                          Text("${DateFormat('MMMM d, y').format(cubit.postsModel!.data[index].currentDateTime!)}",
+                                            style: TextStyle(
+                                                color: Colors.grey,
+                                                fontSize: 15
+                                            ),)
                                         ],
                                       )
                                     ],
                                   ),
-                                  SizedBox(height: 20,),
-                                  Text('${cubit.postsModel!.data[index].content}'
-                                  ,style: TextStyle(
-                                      fontSize: 17,
 
-                                    ),),
-                                  SizedBox(height: 20,),
 
-                                  cubit.postsModel!.data[index].postImage!.isNotEmpty ?
-                                  Container(
-                                    width: double.infinity,
-                                    height: 400,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(20)
-                                    ),
-                                    child:
+                                  InkWell(
+                                    onTap: (){
+                                      
+                                      cubit.getSpecificPostData(postId: cubit.postsModel!.data[index].sharedPostId!);
+                                      Navigator.push(context, MaterialPageRoute(builder: (builder)=>PostView()));
+                                    },
+                                    child: Card(
+                                        shadowColor: Colors.transparent,
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(20.0)
+                                        ),
+                                        color: Colors.white,
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(20.0),
+                                          child: Column(
+                                            crossAxisAlignment:CrossAxisAlignment.start,
 
-                                    ClipRRect(
-                                        borderRadius: BorderRadius.circular(20),
-                                        child: CachedNetworkImage(
-                                          imageUrl: '${cubit.postsModel!.data[index].postImage}',fit: BoxFit.cover,
-                                          placeholder: (context, url) => SpinKitRing(
-                                            color: Colors.grey,
-                                            lineWidth: 3.0,
-                                            size: 50.0,
-                                            duration: Duration(milliseconds: 50),
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Container(
+                                                      width: 50,
+                                                      height: 50,
+                                                      decoration: BoxDecoration(
+                                                          color: Colors.white,
+                                                          borderRadius: BorderRadius.circular(25)
+                                                      ),
+                                                      child:
+                                                      ClipRRect(
+                                                        borderRadius: BorderRadius.circular(25),
+                                                        child: CachedNetworkImage(
+                                                          imageUrl: '${cubit.postsModel!.data[index].userImage!}',
+                                                          placeholder: (context, url) => SpinKitRing(
+                                                            color: Colors.grey,
+                                                            lineWidth: 3.0,
+                                                            size: 25.0,
+                                                            duration: Duration(milliseconds: 500),
+                                                          ),
+                                                          errorWidget: (context, url, error) => Center(child: Icon(Icons.error)),
+                                                        ),
+                                                      )
+                                                  ),
+
+                                                  SizedBox(width: 10,),
+                                                  Column(
+                                                    crossAxisAlignment:CrossAxisAlignment.start,
+                                                    children: [
+                                                      Text('${cubit.postsModel!.data[index].userName}',
+                                                        style: TextStyle(
+                                                            fontSize: 17,
+                                                            fontWeight: FontWeight.w700
+                                                        ),),
+                                                      Text("${DateFormat('MMMM d, y').format(cubit.postsModel!.data[index].dateTime!)}",
+                                                        style: TextStyle(
+                                                            color: Colors.grey,
+                                                            fontSize: 15
+                                                        ),)
+                                                    ],
+                                                  )
+                                                ],
+                                              ),
+                                              SizedBox(height: 20,),
+                                              Text('${cubit.postsModel!.data[index].content}'
+                                                ,style: TextStyle(
+                                                  fontSize: 17,
+
+                                                ),),
+                                              SizedBox(height: 20,),
+
+                                              cubit.postsModel!.data[index].postImage!.isNotEmpty ?
+                                              Container(
+                                                width: double.infinity,
+                                                height: 400,
+                                                decoration: BoxDecoration(
+                                                    borderRadius: BorderRadius.circular(20)
+                                                ),
+                                                child:
+
+                                                ClipRRect(
+                                                    borderRadius: BorderRadius.circular(20),
+                                                    child: CachedNetworkImage(
+                                                      imageUrl: '${cubit.postsModel!.data[index].postImage}',fit: BoxFit.cover,
+                                                      placeholder: (context, url) => SpinKitRing(
+                                                        color: Colors.grey,
+                                                        lineWidth: 3.0,
+                                                        size: 50.0,
+                                                        duration: Duration(milliseconds: 50),
+                                                      ),
+                                                      errorWidget: (context, url, error) => Center(child: Icon(Icons.error)),
+                                                    )
+                                                ),
+                                              ):SizedBox(),
+                                              SizedBox(height: 10,),
+
+                                            ],
                                           ),
-                                          errorWidget: (context, url, error) => Center(child: Icon(Icons.error)),
                                         )
                                     ),
-                                  ):SizedBox(),
-                                  SizedBox(height: 10,),
+                                  ),
+
                                   Row(
                                     children: [
                                       Expanded(
@@ -330,21 +401,208 @@ class HomeScreen extends StatelessWidget {
                                               }
                                             },
                                             icon: cubit.checkLike(postId: cubit.postsModel!.data[index].postId!) ?
-                                              Icon(Icons.favorite,color: Colors.red,) : Icon(Icons.favorite_outline,)
+                                            Icon(Icons.favorite,color: Colors.red,) : Icon(Icons.favorite_outline,)
                                         ),
                                       ),
                                       Text("|"),
                                       Expanded(
                                         child: IconButton(
-                                            onPressed: (){},
+                                            onPressed: (){
+                                              DateTime dateTime = DateTime.now();
+                                              cubit.sharePost(
+                                                  content: cubit.postsModel!.data[index].content!,
+                                                  userName: cubit.postsModel!.data[index].userName!,
+                                                  dateTime: cubit.postsModel!.data[index].dateTime!,
+                                                  ownerImage: cubit.postsModel!.data[index].userImage!,
+                                                  postImage: cubit.postsModel!.data[index].postImage,
+                                                  currentDateTime: dateTime,
+                                                  sharedPostId: cubit.postsModel!.data[index].sharedPostId!
+                                              );
+                                            },
                                             icon: Icon(Icons.arrow_forward)),
                                       ),
                                     ],
                                   ),
                                 ],
                               ),
-                            )
+                            ),
                           );
+                        }
+                        else {
+                          return Card(
+                              shadowColor: Colors.transparent,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20.0)
+                              ),
+                              color: Colors.white,
+                              child: Padding(
+                                padding: const EdgeInsets.all(20.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Container(
+                                            width: 50,
+                                            height: 50,
+                                            decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                borderRadius: BorderRadius
+                                                    .circular(25)
+                                            ),
+                                            child:
+                                            ClipRRect(
+                                              borderRadius: BorderRadius
+                                                  .circular(25),
+                                              child: CachedNetworkImage(
+                                                imageUrl: '${cubit.postsModel!
+                                                    .data[index].userImage!}',
+                                                placeholder: (context, url) =>
+                                                    SpinKitRing(
+                                                      color: Colors.grey,
+                                                      lineWidth: 3.0,
+                                                      size: 25.0,
+                                                      duration: Duration(
+                                                          milliseconds: 500),
+                                                    ),
+                                                errorWidget: (context, url,
+                                                    error) =>
+                                                    Center(child: Icon(
+                                                        Icons.error)),
+                                              ),
+                                            )
+                                        ),
+
+                                        SizedBox(width: 10,),
+                                        Column(
+                                          crossAxisAlignment: CrossAxisAlignment
+                                              .start,
+                                          children: [
+                                            Text(
+                                              '${cubit.postsModel!.data[index]
+                                                  .userName}',
+                                              style: TextStyle(
+                                                  fontSize: 17,
+                                                  fontWeight: FontWeight.w700
+                                              ),),
+                                            Text(
+                                              "${DateFormat('MMMM d, y').format(
+                                                  cubit.postsModel!.data[index]
+                                                      .dateTime!)}",
+                                              style: TextStyle(
+                                                  color: Colors.grey,
+                                                  fontSize: 15
+                                              ),)
+                                          ],
+                                        )
+                                      ],
+                                    ),
+                                    SizedBox(height: 20,),
+                                    Text(
+                                      '${cubit.postsModel!.data[index].content}'
+                                      , style: TextStyle(
+                                      fontSize: 17,
+
+                                    ),),
+                                    SizedBox(height: 20,),
+
+                                    cubit.postsModel!.data[index].postImage!
+                                        .isNotEmpty ?
+                                    Container(
+                                      width: double.infinity,
+                                      height: 400,
+                                      decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(
+                                              20)
+                                      ),
+                                      child:
+
+                                      ClipRRect(
+                                          borderRadius: BorderRadius.circular(
+                                              20),
+                                          child: CachedNetworkImage(
+                                            imageUrl: '${cubit.postsModel!
+                                                .data[index].postImage}',
+                                            fit: BoxFit.cover,
+                                            placeholder: (context, url) =>
+                                                SpinKitRing(
+                                                  color: Colors.grey,
+                                                  lineWidth: 3.0,
+                                                  size: 50.0,
+                                                  duration: Duration(
+                                                      milliseconds: 50),
+                                                ),
+                                            errorWidget: (context, url,
+                                                error) =>
+                                                Center(
+                                                    child: Icon(Icons.error)),
+                                          )
+                                      ),
+                                    ) : SizedBox(),
+                                    SizedBox(height: 10,),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: IconButton(
+                                              onPressed: () {
+                                                if (cubit.checkLike(
+                                                    postId: cubit.postsModel!
+                                                        .data[index].postId!)) {
+                                                  cubit.DeleteLike(
+                                                      postId: cubit.postsModel!
+                                                          .data[index].postId!);
+                                                }
+                                                else {
+                                                  cubit.MakeLike(
+                                                      postId: cubit.postsModel!
+                                                          .data[index].postId!,
+                                                      userName: cubit.userModel!
+                                                          .name!,
+                                                      email: cubit.userModel!
+                                                          .email!
+                                                  );
+                                                }
+                                              },
+                                              icon: cubit.checkLike(
+                                                  postId: cubit.postsModel!
+                                                      .data[index].postId!) ?
+                                              Icon(Icons.favorite,
+                                                color: Colors.red,) : Icon(
+                                                Icons.favorite_outline,)
+                                          ),
+                                        ),
+                                        Text("|"),
+                                        Expanded(
+                                          child: IconButton(
+                                              onPressed: () {
+                                                DateTime dateTime = DateTime
+                                                    .now();
+                                                cubit.sharePost(
+                                                  sharedPostId: cubit.postsModel!
+                                                      .data[index].postId!,
+                                                    content: cubit.postsModel!
+                                                        .data[index].content!,
+                                                    userName: cubit.postsModel!
+                                                        .data[index].userName!,
+                                                    dateTime: cubit.postsModel!
+                                                        .data[index].dateTime!,
+                                                    ownerImage: cubit
+                                                        .postsModel!.data[index]
+                                                        .userImage!,
+                                                    postImage: cubit.postsModel!
+                                                        .data[index].postImage,
+                                                    currentDateTime: dateTime);
+                                              },
+                                              icon: Icon(Icons.arrow_forward)),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              )
+                          );
+                        }
                         },
                         separatorBuilder: (context,index){
                           return SizedBox(height: 10,);

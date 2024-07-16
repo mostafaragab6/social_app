@@ -6,6 +6,7 @@ class UserModel{
   String? phone;
   String? uId;
   List<Followers> followers = [];
+  List<Following> following = [];
 
 
   UserModel.fromJson(dynamic json){
@@ -25,5 +26,13 @@ class Followers{
 
   Followers.fromJson(Map<String,dynamic> json){
     followerId = json['followerId'];
+  }
+}
+
+class Following{
+  String? followedId;
+
+  Following.fromJson(Map<String,dynamic> json){
+    followedId = json['followedId'];
   }
 }

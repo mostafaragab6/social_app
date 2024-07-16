@@ -2,10 +2,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:social_app/App_LayOut.dart';
 import 'package:social_app/Models/App_Cubit/Cubit.dart';
 import 'package:social_app/Models/App_Cubit/States.dart';
-import 'package:social_app/Modules/Profile_Screen.dart';
 import 'package:social_app/Modules/Searched_User.dart';
 
 class SearchScreen extends StatelessWidget {
@@ -37,8 +35,8 @@ class SearchScreen extends StatelessWidget {
             
                     
                   ),
-                  onFieldSubmitted: (value){
-                    cubit.Search(userName: searchController.text);
+                  onChanged: (value){
+                      cubit.Search(userName: searchController.text);
                   },
                 ),
                 
@@ -48,23 +46,21 @@ class SearchScreen extends StatelessWidget {
                   shrinkWrap: true,
                     physics: NeverScrollableScrollPhysics(),
                     itemBuilder: (context,index){
-                    return InkWell(
+                    return
+                      cubit.allUsersData![index].email == cubit.userModel!.email?
+                        SizedBox()
+                     :
+                      InkWell(
                       onTap: (){
-                        if(cubit.allUsersData![index].email == cubit.userModel!.email) {
-                          cubit.currentIndex=2;
-                          Navigator.push(context, MaterialPageRoute(
-                              builder: (builder) => LayOut()));
-                        }
-                        else {
+                          cubit.getSpecificUserData(cubit.allUsersData![index]);
                           cubit.GetPosts(
                               email: cubit.allUsersData![index].email);
                           //cubit.getSpecificUserFollowers(cubit.allUsersData![index].uId!);
 
                           Navigator.push(context, MaterialPageRoute(
                               builder: (builder) =>
-                                  SearchedUser(
-                                      userModel: cubit.allUsersData![index])));
-                        }
+                                  SearchedUser(userModel: cubit.allUsersData![index],)));
+
                       },
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,

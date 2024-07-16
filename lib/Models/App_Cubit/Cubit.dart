@@ -1,4 +1,3 @@
-import 'dart:ffi';
 import 'dart:io';
 import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -6,7 +5,6 @@ import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:social_app/Models/All_Users_Model.dart';
 import 'package:social_app/Models/App_Cubit/States.dart';
 import 'package:social_app/Models/Post_Likes.dart';
 import 'package:social_app/Models/Posts_Model.dart';
@@ -62,12 +60,82 @@ class AppCubit extends Cubit<AppStates>{
       });
 
   }
+
+  void sharePost(
+      {
+        required String content ,
+        required String userName ,
+        required DateTime dateTime ,
+        String? postImage,
+        required String ownerImage,
+        required DateTime currentDateTime,
+        required String sharedPostId
+
+      }){
+    emit(CreatePostLoadingState());
+
+
+    FirebaseFirestore
+        .instance
+        .collection('posts')
+        .add({
+      'content' : content,
+      'userName' : userName,
+      'dateTime' : dateTime,
+      'postImage' : postImage,
+      'userImage' : ownerImage,
+      'email' : userModel!.email,
+      'myName': userModel!.name,
+      'myImage': userModel!.image,
+      'currentDateTime': currentDateTime,
+      'sharedPostId': sharedPostId,
+      'method': 'Share',
+    })
+        .then((value){
+      print("created successfully");
+      GetPosts();
+      emit(CreatePostSuccessState());
+    })
+        .catchError((error){
+      print(error.toString());
+      emit(CreatePostErrorState());
+    });
+
+  }
+
+
+  PostData? postData;
+  void getSpecificPostData({required String postId}){
+
+    emit(GetSpecificPostDataLoading());
+
+    FirebaseFirestore
+        .instance
+        .collection('posts')
+        .doc(postId)
+        .get()
+        .then((value){
+
+          postData = PostData.fromMap(value);
+          //postData!.postId = value.id;
+          print(postData!.userName);
+          print(postData!.userName);
+
+
+          emit(GetSpecificPostDataSuccess());
+    })
+        .catchError((error){
+          print(error.toString());
+          emit(GetSpecificPostDataError());
+    });
+
+
+  }
+
+
   UserModel? userModel;
-  List<AllUsersData> followersData=[];
   void GetUserData(String uId){
     emit(GetUserDataLoading());
-
-    GetAllUsers();
 
     FirebaseFirestore.instance
         .collection('users')
@@ -78,36 +146,10 @@ class AppCubit extends Cubit<AppStates>{
       likes.addAll({
         "${userModel!.email}":[]
       });
-      // Fetch followers
-      FirebaseFirestore.instance
-          .collection('users')
-          .doc(uId)
-          .collection('followers')
-          .get()
-          .then((value) {
-        for (var element in value.docs) {
-          userModel!.followers.add(Followers.fromJson(element.data()));
-        }
 
+      getUserFollowersAndFollowing();
 
-        for(var follower in userModel!.followers ){
-          for(var element in allUsersModel!.data){
-            if(follower.followerId == element.uId){
-              followersData.add(element);
-            }
-          }
-        }
-
-        print('>>>>>>>>>>>>>>>>>>>>>>>>>>${followersData[0].name}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<');
-        GetPostsLikes();
-        print("Retrieved");
-        print(userModel!.name);
-        emit(GetUserDataSuccess());
-
-      }).catchError((error) {
-        print("Error fetching followers: ${error.toString()}");
-        emit(GetUserDataError());
-      });
+      GetPostsLikes();
     })
         .catchError((error){
       print(error.toString());
@@ -115,44 +157,120 @@ class AppCubit extends Cubit<AppStates>{
     });
   }
 
-  AllUsersModel? allUsersModel;
+
+  void getUserFollowersAndFollowing(){
+    emit(GetUserFollowersAndFollowingDataLoading());
+    userModel!.followers.clear();
+    userModel!.following.clear();
+    // Fetch followers
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(uId)
+        .collection('followers')
+        .get()
+        .then((value) {
+      for (var element in value.docs) {
+        userModel!.followers.add(Followers.fromJson(element.data()));
+      }
+
+
+      emit(GetUserFollowersAndFollowingDataSuccess());
+
+    }).catchError((error) {
+      print("Error fetching followers: ${error.toString()}");
+      emit(GetUserFollowersAndFollowingDataError());
+    });
+
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(uId)
+        .collection('following')
+        .get()
+        .then((value) {
+      for (var element in value.docs) {
+        userModel!.following.add(Following.fromJson(element.data()));
+
+
+      }
+      emit(GetUserFollowersAndFollowingDataSuccess());
+
+    }).catchError((error) {
+      print("Error fetching followers: ${error.toString()}");
+      emit(GetUserFollowersAndFollowingDataError());
+    });
+
+
+  }
+
+
+
+  List<UserModel> followersData=[];
+  void fetchUserFollowers(String uId,UserModel userModel){
+    followersData.clear();
+
+      for(var follower in userModel.followers ){
+        FirebaseFirestore
+            .instance
+            .collection('users')
+            .doc(follower.followerId)
+            .get()
+            .then((vaule){
+         // print('<<<<<<<<<>>>>>>>>>>${vaule.data()!['name']}');
+          followersData.add(UserModel.fromJson(vaule.data()));
+          //print(followersData[1].name);
+        })
+            .catchError((error){
+          print("Error fetching followers: ${error.toString()}");
+          emit(GetUserDataError());
+        });
+
+      }
+
+
+  }
+
+  List<UserModel> followingData=[];
+  void fetchUserFollowing(String uId,UserModel userModel){
+    followingData.clear();
+
+    for(var following in userModel.following ){
+      FirebaseFirestore
+          .instance
+          .collection('users')
+          .doc(following.followedId)
+          .get()
+          .then((vaule){
+        //print('<<<<<<<<<>>>>>>>>>>${vaule.data()!['name']}');
+        followingData.add(UserModel.fromJson(vaule.data()));
+        //print(followersData[1].name);
+      })
+          .catchError((error){
+        print("Error fetching following: ${error.toString()}");
+        emit(GetUserDataError());
+      });
+
+    }
+
+
+  }
+
+  List<UserModel> allUsersModel=[];
   void GetAllUsers(){
     emit(GetAllUsersDataLoading());
-
+    allUsersModel.clear();
     FirebaseFirestore
         .instance
         .collection('users')
         .get()
         .then((value){
 
-          allUsersModel = AllUsersModel.fromJson(value.docs);
+          for(var user in value.docs){
+            print('?????????????????????${user.data()['name']}');
+            allUsersModel.add(UserModel.fromJson(user.data()));
+          }
 
 
-          allUsersModel!.data.forEach((element){
-
-            FirebaseFirestore.instance
-                  .collection('users')
-                  .doc(element.uId)
-                  .collection('followers')
-                  .get()
-                .then((value){
-
-              for (var follower in value.docs) {
-                element.followers.add(AllUsersFollowers.fromJson(follower.data()));
-              }
-            })
-                .catchError((error){
-                  print(error.toString());
-                  emit(GetSpecificUserFollowersError());
-            });
-
-          });
-
-
-          print(allUsersModel!.data[0].phone);
-          print(allUsersModel!.data[1].phone);
-
-          emit(GetAllUsersrDataSuccess());
+            emit(GetAllUsersrDataSuccess());
     })
         .catchError((error){
           print(error.toString());
@@ -161,56 +279,71 @@ class AppCubit extends Cubit<AppStates>{
   }
 
 
-  List<AllUsersData>? allUsersData=[];
-  void Search({required String userName}){
 
-    allUsersData = [];
+  void getSpecificUserData(UserModel? specificUserModel){
+    emit(GetSpecificUserDataLoading());
 
-    allUsersModel!.data.forEach((element){
-      if(element.name!.contains(userName.toUpperCase()) || element.name!.contains(userName.toLowerCase())){
-        allUsersData!.add(element);
-      }
-    });
-    print(allUsersData![0].name);
-    emit(SearchUsersState());
+      // Fetch followers
+      FirebaseFirestore.instance
+          .collection('users')
+          .doc(specificUserModel!.uId)
+          .collection('followers')
+          .get()
+          .then((value) {
+        for (var element in value.docs) {
+          specificUserModel!.followers.add(Followers.fromJson(element.data()));
+
+        }
+
+        emit(GetSpecificUserDataSuccess());
+
+      }).catchError((error) {
+        print("Error fetching followers: ${error.toString()}");
+        emit(GetSpecificUserDataError());
+      });
+
+
+      FirebaseFirestore.instance
+          .collection('users')
+          .doc(specificUserModel!.uId)
+          .collection('following')
+          .get()
+          .then((value) {
+        for (var element in value.docs) {
+          specificUserModel!.following.add(Following.fromJson(element.data()));
+        }
+
+
+        //print(specificUserModel!.following[0].followedId);
+        //print(specificUserModel!.following[1].followedId);
+        //getUserFollowersAndFollowing();
+        emit(GetSpecificUserDataSuccess());
+
+      }).catchError((error) {
+        print("Error fetching followers: ${error.toString()}");
+        emit(GetSpecificUserDataError());
+      });
 
   }
 
-  // List<Followers> specificUserFollowersIds = [];
-  // List<AllUsersData>? specificUserFollowersData=[];
-  // void getSpecificUserFollowers(String uId){
-  //   emit(GetSpecificUserFollowersLoading());
-  //
-  //   GetAllUsers();
-  //
-  //   FirebaseFirestore.instance
-  //       .collection('users')
-  //       .doc(uId)
-  //       .collection('followers')
-  //       .get()
-  //       .then((value) {
-  //
-  //     for (var element in value.docs) {
-  //       specificUserFollowersIds.add(Followers.fromJson(element.data()));
-  //     }
-  //
-  //     for(var follower in specificUserFollowersIds){
-  //       for(var element in allUsersModel!.data){
-  //         if(follower.followerId == element.uId){
-  //           specificUserFollowersData!.add(element);
-  //         }
-  //       }
-  //     }
-  //
-  //     emit(GetSpecificUserFollowersSuccess());
-  //
-  //   }).catchError((error) {
-  //     print("Error fetching followers: ${error.toString()}");
-  //     emit(GetSpecificUserFollowersError());
-  //   });
-  //
-  //
-  // }
+
+  List<UserModel>? allUsersData=[];
+  void Search({required String userName}){
+
+    if(userName.isEmpty) {
+      allUsersData!.clear();
+    }
+    else {
+      allUsersData!.clear();
+      allUsersModel.forEach((element) {
+        if (element.name!.contains(userName)) {
+          allUsersData!.add(element);
+        }
+      });
+      print(allUsersData![0].name);
+      emit(SearchUsersState());
+    }
+  }
 
 
   PostsModel? postsModel;
@@ -257,18 +390,38 @@ class AppCubit extends Cubit<AppStates>{
   }
 
 
-  void makeFollow({required String uId}){
+  void makeFollow({required String followedUId}){
     emit(MakeFollowLoading());
 
     FirebaseFirestore
         .instance
         .collection('users')
-        .doc(uId)
+        .doc(followedUId)
         .collection('followers')
-        .add({
+        .doc(userModel!.uId)
+        .set({
       'followerId' : userModel!.uId
     })
         .then((value){
+
+      FirebaseFirestore
+          .instance
+          .collection('users')
+          .doc(userModel!.uId)
+          .collection('following')
+          .doc(followedUId)
+          .set({
+          'followedId' : followedUId
+      })
+          .then((value){
+
+      })
+          .catchError((error){
+            print(error.toString());
+            emit(MakeFollowError());
+      });
+
+          getUserFollowersAndFollowing();
           print('Follow made successfully');
           emit(MakeFollowSuccess());
 
@@ -279,7 +432,44 @@ class AppCubit extends Cubit<AppStates>{
     });
 
   }
+  void deleteFollow({required String followedUId}){
+    emit(DeleteFollowLoading());
 
+    FirebaseFirestore
+        .instance
+        .collection('users')
+        .doc(followedUId)
+        .collection('followers')
+        .doc(userModel!.uId)
+        .delete()
+        .then((value){
+
+      FirebaseFirestore
+          .instance
+          .collection('users')
+          .doc(userModel!.uId)
+          .collection('following')
+          .doc(followedUId)
+          .delete()
+          .then((value){
+
+      })
+          .catchError((error){
+        print(error.toString());
+        emit(DeleteFollowError());
+      });
+
+      getUserFollowersAndFollowing();
+      print('Deleted successfully');
+      emit(DeleteFollowSuccess());
+
+    })
+        .catchError((error){
+      print(error.toString());
+      emit(DeleteFollowError());
+    });
+
+  }
 
   Likes? likesData;
   void GetPostsLikes(){
@@ -363,6 +553,18 @@ class AppCubit extends Cubit<AppStates>{
       emit(DeleteLikeError());
     });
   }
+
+
+  bool checkFollow({required String uId}) {
+    for (var user in userModel!.following) {
+      if (user.followedId == uId) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+
 
 
   bool checkLike({required String postId}) {

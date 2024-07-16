@@ -10,6 +10,8 @@ import 'package:social_app/Models/App_Cubit/States.dart';
 import 'package:social_app/Modules/Edit_Profile.dart';
 import 'package:social_app/Modules/LoginScreen.dart';
 
+import 'Post_View.dart';
+
 class ProfileScreen extends StatelessWidget {
 
   @override
@@ -150,7 +152,7 @@ class ProfileScreen extends StatelessWidget {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text('${cubit.followersData.length}',style: TextStyle(
+                            Text('${cubit.userModel!.followers.length}',style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w500)),
                             SizedBox(height: 6,),
@@ -164,7 +166,7 @@ class ProfileScreen extends StatelessWidget {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text('3',style: TextStyle(
+                            Text('${cubit.userModel!.following.length}',style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w500)),
                             SizedBox(height: 6,),
@@ -185,21 +187,20 @@ class ProfileScreen extends StatelessWidget {
                     shrinkWrap: true,
                     physics: NeverScrollableScrollPhysics(),
                     itemBuilder: (context,index){
-                      return Card(
+                      if(cubit.userPosts[index].method == 'Share'){
+                        return Card(
                           shadowColor: Colors.transparent,
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(20.0)
                           ),
-                          color: Colors.white,
+                          color: Colors.white38,
                           child: Padding(
                             padding: const EdgeInsets.all(20.0),
                             child: Column(
-                              crossAxisAlignment:CrossAxisAlignment.start,
-
                               children: [
+
                                 Row(
                                   children: [
-
                                     Container(
                                         width: 50,
                                         height: 50,
@@ -211,7 +212,7 @@ class ProfileScreen extends StatelessWidget {
                                         ClipRRect(
                                           borderRadius: BorderRadius.circular(25),
                                           child: CachedNetworkImage(
-                                            imageUrl: '${cubit.userPosts[index].userImage}',
+                                            imageUrl: '${cubit.userPosts[index].myImage!}',
                                             placeholder: (context, url) => SpinKitRing(
                                               color: Colors.grey,
                                               lineWidth: 3.0,
@@ -222,16 +223,17 @@ class ProfileScreen extends StatelessWidget {
                                           ),
                                         )
                                     ),
+
                                     SizedBox(width: 10,),
                                     Column(
                                       crossAxisAlignment:CrossAxisAlignment.start,
                                       children: [
-                                        Text('${cubit.userPosts[index].userName}',
+                                        Text('${cubit.userPosts[index].myName}',
                                           style: TextStyle(
                                               fontSize: 17,
                                               fontWeight: FontWeight.w700
                                           ),),
-                                        Text("${DateFormat('MMMM d, y').format(cubit.userPosts[index].dateTime!)}",
+                                        Text("${DateFormat('MMMM d, y').format(cubit.userPosts[index].currentDateTime!)}",
                                           style: TextStyle(
                                               color: Colors.grey,
                                               fontSize: 15
@@ -240,38 +242,107 @@ class ProfileScreen extends StatelessWidget {
                                     )
                                   ],
                                 ),
-                                SizedBox(height: 20,),
-                                Text('${cubit.userPosts[index].content}'
-                                  ,style: TextStyle(
-                                    fontSize: 17,
 
-                                  ),),
-                                SizedBox(height: 20,),
-                                cubit.userPosts[index].postImage!.isNotEmpty ?
-                                Container(
-                                  width: double.infinity,
-                                  height: 400,
-                                  decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(20)
-                                  ),
-                                  child:
 
-                                  ClipRRect(
-                                      borderRadius: BorderRadius.circular(20),
-                                      child: CachedNetworkImage(
-                                        imageUrl: '${cubit.userPosts[index].postImage}',fit: BoxFit.cover,
-                                        placeholder: (context, url) => SpinKitRing(
-                                          color: Colors.grey,
-                                          lineWidth: 3.0,
-                                          size: 50.0,
-                                          duration: Duration(milliseconds: 50),
+                                InkWell(
+                                  onTap: (){
+                                    cubit.getSpecificPostData(postId: cubit.userPosts[index].sharedPostId!);
+                                    Navigator.push(context, MaterialPageRoute(builder: (builder)=>PostView()));
+                                  },
+                                  child: Card(
+                                      shadowColor: Colors.transparent,
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(20.0)
+                                      ),
+                                      color: Colors.white,
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(20.0),
+                                        child: Column(
+                                          crossAxisAlignment:CrossAxisAlignment.start,
+
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Container(
+                                                    width: 50,
+                                                    height: 50,
+                                                    decoration: BoxDecoration(
+                                                        color: Colors.white,
+                                                        borderRadius: BorderRadius.circular(25)
+                                                    ),
+                                                    child:
+                                                    ClipRRect(
+                                                      borderRadius: BorderRadius.circular(25),
+                                                      child: CachedNetworkImage(
+                                                        imageUrl: '${cubit.userPosts[index].userImage!}',
+                                                        placeholder: (context, url) => SpinKitRing(
+                                                          color: Colors.grey,
+                                                          lineWidth: 3.0,
+                                                          size: 25.0,
+                                                          duration: Duration(milliseconds: 500),
+                                                        ),
+                                                        errorWidget: (context, url, error) => Center(child: Icon(Icons.error)),
+                                                      ),
+                                                    )
+                                                ),
+
+                                                SizedBox(width: 10,),
+                                                Column(
+                                                  crossAxisAlignment:CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text('${cubit.userPosts[index].userName}',
+                                                      style: TextStyle(
+                                                          fontSize: 17,
+                                                          fontWeight: FontWeight.w700
+                                                      ),),
+                                                    Text("${DateFormat('MMMM d, y').format(cubit.userPosts[index].dateTime!)}",
+                                                      style: TextStyle(
+                                                          color: Colors.grey,
+                                                          fontSize: 15
+                                                      ),)
+                                                  ],
+                                                )
+                                              ],
+                                            ),
+                                            SizedBox(height: 20,),
+                                            Text('${cubit.userPosts[index].content}'
+                                              ,style: TextStyle(
+                                                fontSize: 17,
+
+                                              ),),
+                                            SizedBox(height: 20,),
+
+                                            cubit.userPosts[index].postImage!.isNotEmpty ?
+                                            Container(
+                                              width: double.infinity,
+                                              height: 400,
+                                              decoration: BoxDecoration(
+                                                  borderRadius: BorderRadius.circular(20)
+                                              ),
+                                              child:
+
+                                              ClipRRect(
+                                                  borderRadius: BorderRadius.circular(20),
+                                                  child: CachedNetworkImage(
+                                                    imageUrl: '${cubit.userPosts[index].postImage}',fit: BoxFit.cover,
+                                                    placeholder: (context, url) => SpinKitRing(
+                                                      color: Colors.grey,
+                                                      lineWidth: 3.0,
+                                                      size: 50.0,
+                                                      duration: Duration(milliseconds: 50),
+                                                    ),
+                                                    errorWidget: (context, url, error) => Center(child: Icon(Icons.error)),
+                                                  )
+                                              ),
+                                            ):SizedBox(),
+                                            SizedBox(height: 10,),
+
+                                          ],
                                         ),
-                                        errorWidget: (context, url, error) => Center(child: Icon(Icons.error)),
                                       )
-                                  )
-                                     ,
-                                ):SizedBox(),
-                                SizedBox(height: 10,),
+                                  ),
+                                ),
+
                                 Row(
                                   children: [
                                     Expanded(
@@ -299,15 +370,175 @@ class ProfileScreen extends StatelessWidget {
                                     Text("|"),
                                     Expanded(
                                       child: IconButton(
-                                          onPressed: (){},
+                                          onPressed: (){
+                                            DateTime dateTime = DateTime.now();
+                                            cubit.sharePost(
+                                                sharedPostId:cubit.userPosts[index].sharedPostId!,
+                                                content: cubit.userPosts[index].content!,
+                                                userName: cubit.userPosts[index].userName!,
+                                                dateTime: cubit.userPosts[index].dateTime!,
+                                                ownerImage: cubit.userPosts[index].userImage!,
+                                                postImage: cubit.userPosts[index].postImage,
+                                                currentDateTime: dateTime);
+                                          },
                                           icon: Icon(Icons.arrow_forward)),
                                     ),
                                   ],
                                 ),
                               ],
                             ),
-                          )
-                      );
+                          ),
+                        );
+                      }
+                      else {
+                        return Card(
+                            shadowColor: Colors.transparent,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20.0)
+                            ),
+                            color: Colors.white,
+                            child: Padding(
+                              padding: const EdgeInsets.all(20.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+
+                                children: [
+                                  Row(
+                                    children: [
+
+                                      Container(
+                                          width: 50,
+                                          height: 50,
+                                          decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius: BorderRadius
+                                                  .circular(25)
+                                          ),
+                                          child:
+                                          ClipRRect(
+                                            borderRadius: BorderRadius.circular(
+                                                25),
+                                            child: CachedNetworkImage(
+                                              imageUrl: '${cubit
+                                                  .userPosts[index].userImage}',
+                                              placeholder: (context, url) =>
+                                                  SpinKitRing(
+                                                    color: Colors.grey,
+                                                    lineWidth: 3.0,
+                                                    size: 25.0,
+                                                    duration: Duration(
+                                                        milliseconds: 500),
+                                                  ),
+                                              errorWidget: (context, url,
+                                                  error) =>
+                                                  Center(
+                                                      child: Icon(Icons.error)),
+                                            ),
+                                          )
+                                      ),
+                                      SizedBox(width: 10,),
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment
+                                            .start,
+                                        children: [
+                                          Text('${cubit.userPosts[index]
+                                              .userName}',
+                                            style: TextStyle(
+                                                fontSize: 17,
+                                                fontWeight: FontWeight.w700
+                                            ),),
+                                          Text(
+                                            "${DateFormat('MMMM d, y').format(
+                                                cubit.userPosts[index]
+                                                    .dateTime!)}",
+                                            style: TextStyle(
+                                                color: Colors.grey,
+                                                fontSize: 15
+                                            ),)
+                                        ],
+                                      )
+                                    ],
+                                  ),
+                                  SizedBox(height: 20,),
+                                  Text('${cubit.userPosts[index].content}'
+                                    , style: TextStyle(
+                                      fontSize: 17,
+
+                                    ),),
+                                  SizedBox(height: 20,),
+                                  cubit.userPosts[index].postImage!.isNotEmpty ?
+                                  Container(
+                                    width: double.infinity,
+                                    height: 400,
+                                    decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(20)
+                                    ),
+                                    child:
+
+                                    ClipRRect(
+                                        borderRadius: BorderRadius.circular(20),
+                                        child: CachedNetworkImage(
+                                          imageUrl: '${cubit.userPosts[index]
+                                              .postImage}', fit: BoxFit.cover,
+                                          placeholder: (context, url) =>
+                                              SpinKitRing(
+                                                color: Colors.grey,
+                                                lineWidth: 3.0,
+                                                size: 50.0,
+                                                duration: Duration(
+                                                    milliseconds: 50),
+                                              ),
+                                          errorWidget: (context, url, error) =>
+                                              Center(child: Icon(Icons.error)),
+                                        )
+                                    )
+                                    ,
+                                  ) : SizedBox(),
+                                  SizedBox(height: 10,),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: IconButton(
+                                            onPressed: () {
+                                              if (cubit.checkLike(
+                                                  postId: cubit.userPosts[index]
+                                                      .postId!)) {
+                                                cubit.DeleteLike(postId: cubit
+                                                    .userPosts[index].postId!);
+                                              }
+                                              else {
+                                                cubit.MakeLike(
+                                                    postId: cubit
+                                                        .userPosts[index]
+                                                        .postId!,
+                                                    userName: cubit.userModel!
+                                                        .name!,
+                                                    email: cubit.userModel!
+                                                        .email!
+                                                );
+                                              }
+                                            },
+                                            icon: cubit.checkLike(
+                                                postId: cubit.userPosts[index]
+                                                    .postId!) ?
+                                            Icon(Icons.favorite,
+                                              color: Colors.red,) : Icon(
+                                              Icons.favorite_outline,)
+                                        ),
+                                      ),
+                                      Text("|"),
+                                      Expanded(
+                                        child: IconButton(
+                                            onPressed: () {},
+                                            icon: Icon(Icons.arrow_forward)),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            )
+                        );
+                      }
                     },
                     separatorBuilder: (context,index){
                       return SizedBox(height: 10,);

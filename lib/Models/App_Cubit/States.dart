@@ -12,9 +12,20 @@ class GetPostsDataLoading extends AppStates{}
 class GetPostsDataSuccess extends AppStates{}
 class GetPostsDataError extends AppStates{}
 
+class GetSpecificPostDataLoading extends AppStates{}
+class GetSpecificPostDataSuccess extends AppStates{}
+class GetSpecificPostDataError extends AppStates{}
+
+
 class GetUserDataLoading extends AppStates{}
 class GetUserDataSuccess extends AppStates{}
 class GetUserDataError extends AppStates{}
+
+
+class GetUserFollowersAndFollowingDataLoading extends AppStates{}
+class GetUserFollowersAndFollowingDataSuccess extends AppStates{}
+class GetUserFollowersAndFollowingDataError extends AppStates{}
+
 
 class GetAllUsersDataLoading extends AppStates{}
 class GetAllUsersrDataSuccess extends AppStates{}
@@ -41,14 +52,19 @@ class MakeFollowLoading extends AppStates{}
 class MakeFollowSuccess extends AppStates{}
 class MakeFollowError extends AppStates{}
 
+
+class DeleteFollowLoading extends AppStates{}
+class DeleteFollowSuccess extends AppStates{}
+class DeleteFollowError extends AppStates{}
+
 class UpdateUserPostsLoading extends AppStates{}
 class UpdateUserPostsSuccess extends AppStates{}
 class UpdateUserPostsError extends AppStates{}
 
 
-class GetSpecificUserFollowersLoading extends AppStates{}
-class GetSpecificUserFollowersSuccess extends AppStates{}
-class GetSpecificUserFollowersError extends AppStates{}
+class GetSpecificUserDataLoading extends AppStates{}
+class GetSpecificUserDataSuccess extends AppStates{}
+class GetSpecificUserDataError extends AppStates{}
 
 
 class UploadProfileImageToStorageLoading extends AppStates{}
